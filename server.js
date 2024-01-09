@@ -3,47 +3,48 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const generateAgoraToken = require('./util');
+
 const app = express();
 app.use(bodyParser.json());
 app.use(express.json());
 
 const server = http.createServer(app);
-const port = 3000;
+const port = process.env.PORT || 3000;
+console.log("env==",process.env.PORT)
 
 app.use(express.static(path.join(__dirname,'templates')));
 function generateApiLink(token, channelName) {
     // Replace this logic with your actual API link generation
-    return `http://localhost:3000/liveStreaming?channel=${channelName}&token=${token}`;
+    return `https://e4d8-136-233-165-105.ngrok-free.app/liveStreaming?channel=${channelName}&token=${token}`;
 }
 
 
-//Generate the link and send it to the user
+//Generate the link and send it to the use
 app.post('/generate-link', (req, res) => {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
 
-    const {channelName} = req.body;
-    const token=generateAgoraToken("test","123456",3600)
-    console.log("token====",token)
-    const apiLink = generateApiLink(token, channelName);
+    const {channelName,streamingUserId} = req.body;
+    const verifyToken=generateAgoraToken(channelName)
+    console.log("verify Token : ",verifyToken)
 
-    console.log("data====",apiLink)
+    const generatedLink = generateApiLink(verifyToken, channelName);
+    console.log("generated link : ",generatedLink)
 
    // example generated link -> http://localhost:3000/liveStreaming?channel=testing&token=123456789
-   //send the link to user like google location &
-    //send the token and api link to the frontend side
-    res.status(201).json(apiLink);
+   // send the link to user via sms.
+   // send the token to the frontend side in response
+    res.status(201).json({playerLink:generatedLink,channelName:channelName,verifyToken:verifyToken});
 });
 
 //above generated link call this api
 app.get('/liveStreaming', (req, res) => {
-    // const { channelName } = req.params;
     const { token,channel } = req.query;
-    console.log("liveStreaming -=====",channel,token)
     return res.sendFile(path.join(__dirname+'/templates/index.html'));
-    // res.status(201).json("start live stream");
 });
 
 server.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
-
 

@@ -1,24 +1,26 @@
-function getParameterByName(name, url) {
-    if (!url) url = window.location.href;
-    name = name.replace(/[\[\]]/g, '\\$&');
-    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, ' '));
-}
+
+const parseUrlParams = () => {
+     const url = window.location.href;
+    const paramsString = url.split("?")[1];
+    const paramsArray = paramsString.split("&");
+
+    const paramsObject = {};
+    paramsArray.forEach(param => {
+        const [key, value] = param.split("=");
+        paramsObject[key] = value;
+    });
+
+    return paramsObject;
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     const videosContainer = document.getElementById('videos-container');
     const remoteVideo = document.getElementById('remoteVideo');
     const loader = document.getElementById('loader');
     const agoraAppId = 'c546ffb5e5bc4b0a8b4d278e7111d037';
-    // const channelName = getParameterByName('channel');
-    // const token = getParameterByName('token');
-    //
-    // console.log("scritp===",channelName,token)
-    const channelName = 'test';
-    const token = '007eJxTYODNaFCf99ROaak78wvNvx/8vLd7/Xrw7rH/xGubDqceuflOgSHZ1MQsLS3JNNU0KdkkySDRIskkxcjcItXc0NAwxcDY3L+9MbUhkJEh7As/CyMDBIL4LAwlqcUlDAwABhgh/Q==';
+    const { channel, token } = parseUrlParams();
+    console.log("Channel Name:", channel);
+    console.log("Token:", token);
 
     const agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
     const onUserPublish = async (
@@ -27,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ) => {
         if (mediaType === "video") {
             const remoteTrack = await agoraClient.subscribe(user, mediaType);
-            console.log("video track===",remoteTrack)
             remoteTrack.play("remoteVideo");
         }
         if (mediaType === "audio") {
@@ -42,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             agoraClient.on("user-published", onUserPublish);
             await agoraClient.join(
                 agoraAppId,
-                channelName,
+                channel,
                 token || null,
                 null
             );
