@@ -15,7 +15,7 @@ console.log("env==",process.env.PORT)
 app.use(express.static(path.join(__dirname,'templates')));
 function generateApiLink(token, channelName) {
     // Replace this logic with your actual API link generation
-    return `https://e4d8-136-233-165-105.ngrok-free.app/liveStreaming?channel=${channelName}&token=${token}`;
+    return `https://ursafestraming.onrender.com/liveStreaming?channel=${channelName}&token=${token}`;
 }
 
 
